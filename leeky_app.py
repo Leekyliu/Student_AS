@@ -19,28 +19,25 @@ class Mainpage:
         if os.path.exists(filename) == False:
             with open(filename,"a") as f:
                 f.write("Unit Code needed '{}'\n".format(coursecode))
-                # print("Sorry the course haven't been recorded yet. We will update soon")
                 res = "Sorry the course haven't been recorded yet. We will update soon"
                 f.close()
-                return res
+
             
         else:
             flag = 0
-            f = open(filename,"r")
+            f = open(filename,"a")
             lines = f.readlines()
             for lines in lines:
                 if coursecode in lines:
-                    # print("We have already received similar query and will update soon")
                     res = "We have already received similar query and will update soon"
                     f.close()
                     flag = 1
                     break
             if flag == 0:  
-                f = open(filename,"a")
                 f.write("Unit Code needed '{}'\n".format(coursecode))
                 res = "Sorry the course haven't been recorded yet. We will update soon"
                 f.close()
-            return res
+        return res
             
 
 
@@ -53,10 +50,10 @@ class Mainpage:
                 f.write("Intent needed '{}'".format(intent))
                 res = "We never encountered this situation. We will update soon"
                 f.close()
-            return res
+
         else:
             flag = 0
-            f = open(filename,"r")
+            f = open(filename,"a")
             lines = f.readlines()
             for lines in lines:
                 if intent.text.text in lines:
@@ -65,11 +62,10 @@ class Mainpage:
                     flag = 1
                     break
             if flag == 0:  
-                f = open(filename,"a")
                 f.write("Intent needed '{}'".format(intent))
                 res = "We never encountered this situation. We will update soon"
                 f.close()
-            return res
+        return res
 
         
 
@@ -81,30 +77,28 @@ class Mainpage:
         semester = offer.query_result.parameters["semesterChoice"]
         if len(coursecode) == 0:
             res = "Sorry the course code is invaild"
-            # print("Sorry the course code is invaild")
-            return res
+
         else:
             cur = self.mydb.cursor()
             cur.execute("SELECT Offered FROM Unit_details WHERE Unit_Code = '{}'".format(coursecode))
             row = cur.fetchone ()
             if row == None:
                 res = self.invaildUnitCode(coursecode)
-                return res
             
             else:
+                self.info_flag = 1
+                self.course = coursecode
                 if semester != "":
                     if row[0] == semester:
                         res = "Yes, it will open in '{}".format(semester)
-                        # print("Yes, it will open in '{}".format(semester))
-                        return res
+
                     else:
                         res = "No, it will open in '{}'".format(row[0])
-                        # print("No, it will open in '{}'".format(row[0]))
-                        return res
                 else:
                     res = "{} will be open in {}".format(coursecode,row[0])
-                    # print("{} will be open in {}".format(coursecode,row[0]))
-                    return res
+                
+
+        return res
 
 
 
@@ -116,64 +110,48 @@ class Mainpage:
         
         if len(coursecode) == 0:
             res = "Sorry the course code is invaild"
-            return res, None, self.info_flag
+
         else:
             cur = self.mydb.cursor()
             cur.execute("SELECT * FROM Unit_details WHERE Unit_Code = '{}'".format(coursecode))
             row = cur.fetchone ()
             if row == None:
                 res = self.invaildUnitCode(coursecode)
-                return res, None, self.info_flag
+
             
             else:
                 res =  "Unit {} is {} in {} faculty which offered in {} and it is {} level".format(row[5],row[6],row[0],row[4],row[3])
                 self.info_flag = 1
-                return res,coursecode,self.info_flag
+                self.course = coursecode
+        
+        return res
 
 
-    def unitWeb(self,offer,course):
+    def unitWeb(self,offer):
         coursecode = offer.query_result.parameters["CourseCode"]
         res = ''
-        if self.info_flag == 1:
-            if len(coursecode) == 0:
+        if len(coursecode) == 0:
+            if self.info_flag == 1:
                 cur = self.mydb.cursor()
                 cur.execute("SELECT More_Info FROM Unit_details WHERE Unit_Code = '{}'".format(self.course))
                 row = cur.fetchone ()
                 res = "You can get more information here: {}".format(row[0])
-            
-            
-            
             else:
-
-                cur = self.mydb.cursor()
-                cur.execute("SELECT More_Info FROM Unit_details WHERE Unit_Code = '{}'".format(coursecode))
-                row = cur.fetchone ()
-
-                if row == None:
-                    res = self.invaildUnitCode(coursecode)
-                
-                else:
-                    res = "You can get more information here: {}".format(row[0])
-                    if self.info_flag == 1:
-                        self.info_flag = 0
-                
-
-        else:
-            if len(coursecode) == 0:
                 res = "Sorry the course code is invaild"
 
-            else:
-                cur = self.mydb.cursor()
-                cur.execute("SELECT More_Info FROM Unit_details WHERE Unit_Code = '{}'".format(coursecode))
-                row = cur.fetchone ()
+        else:
+            cur = self.mydb.cursor()
+            cur.execute("SELECT More_Info FROM Unit_details WHERE Unit_Code = '{}'".format(coursecode))
+            row = cur.fetchone ()
 
-                if row == None:
-                    res = self.invaildUnitCode(coursecode)
-                
-                else:
-                    res = "You can get more information here: {}".format(row[0])
-                    if self.info_flag == 1:
-                        self.info_flag = 0
+            if row == None:
+                res = self.invaildUnitCode(coursecode)
+            
+            else:
+                res = "You can get more information here: {}".format(row[0])
+       
+        self.info_flag = 0
+        self.course = None
         return res       
     
 
@@ -181,35 +159,36 @@ class Mainpage:
     def unitName(self,offer):
         coursecode = offer.query_result.parameters["CourseCode"]
         if len(coursecode) == 0:
-            # print("Sorry the course code is invaild")
             res =  "Sorry the course code is invaild"
-            return res
         else:
-        
             cur = self.mydb.cursor()
             cur.execute("SELECT Unit_Name FROM Unit_details WHERE Unit_Code = '{}'".format(coursecode))
             row = cur.fetchone ()
             if row == None:
                 self.invaildUnitCode(coursecode)
-            
             else:
-                # print("{} name is {}".format(coursecode,row[0]))
                 res = "{} name is {}".format(coursecode,row[0])
-                return res
+                self.info_flag = 1
+                self.course = coursecode
+        return res
 
     def areaUnit(self,offer):
         coursecode = offer.query_result.parameters["CourseCode"]
+        res = ''
         if len(coursecode) == 0:
-            print("Sorry the course code is invaild")
+            res = "Sorry the course code is invaild"
         else:
             cur = self.mydb.cursor()
             cur.execute("SELECT Area_of_Study FROM Unit_details WHERE Unit_Code = '{}'".format(coursecode))
             row = cur.fetchone ()
             if row == None:
-                self.invaildUnitCode(coursecode)
+                res = self.invaildUnitCode(coursecode)
             
             else:
-                print("The area of unit {} is {}".format(coursecode,row[0]))
+                res = "The area of unit {} is {}".format(coursecode,row[0])
+                self.info_flag = 1
+                self.course = coursecode
+        return res
 
 
     def mainloop(self):
@@ -247,7 +226,6 @@ class Mainpage:
         intent = offer.query_result.intent.display_name
         if intent == "Default Welcome Intent":
             print(offer.query_result.fulfillment_text)
-            self.info_flag = 0
             return offer.query_result.fulfillment_text
             
         
@@ -256,51 +234,57 @@ class Mainpage:
         if intent == "OfferSemester":
             print(offer.query_result.fulfillment_text)
             res = self.offerSemester(offer)
-            self.info_flag = 0
             return res
             # return offer.query_result.fulfillment_text
 
         if intent =="UnitName":
             print(offer.query_result.fulfillment_text)
             res = self.unitName(offer)
-            self.info_flag = 0
             return res
 
         if intent == "AreaStudyofUnit":
             print(offer.query_result.fulfillment_text)
             res = self.areaUnit(offer)
-            self.info_flag = 0
             return res
 
         if intent == "UnitInfo":
-            res,self.course,self.info_flag =self.unitInfo(offer)
+            res =self.unitInfo(offer)
             return res
 
             
 
         if intent == "UnitWeb":
-            res = self.unitWeb(offer,self.course)
+            res = self.unitWeb(offer)
             return res
 
         #small talk training happen here
         if intent =='':
             self.info_flag = 0
+            self.course = None
             return offer.query_result.fulfillment_text
 
         if intent == "Default Fallback Intent":
-            self.invaildIntent(query) 
+            self.invaildIntent(query)
+            self.info_flag = 0
+            self.course = None
             return offer.query_result.fulfillment_text
         
 
         if intent == "about agent":
+            self.info_flag = 0
+            self.course = None
             return offer.query_result.fulfillment_text
 
 
         if intent == "About users":
+            self.info_flag = 0
+            self.course = None
             return offer.query_result.fulfillment_text
 
 
         if intent == "End":
+            self.info_flag = 0
+            self.course = None
             return offer.query_result.fulfillment_text
             # break
         
