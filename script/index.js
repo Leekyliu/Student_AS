@@ -3,8 +3,8 @@
 
 
 
- var baseUrl = "http://localhost:15888";
-// var baseUrl = "http://ec2-3-104-75-184.ap-southeast-2.compute.amazonaws.com:16888";
+//  var baseUrl = "http://localhost:15888";
+ var baseUrl = "http://ec2-3-104-75-184.ap-southeast-2.compute.amazonaws.com:16888";
 
 
 
@@ -147,6 +147,8 @@ function send(text) {
 		},
 		error: function() {
 			newRecievedMessage("Internal Server Error");
+			// 可以回复两次,debug后调试@@@
+			newRecievedMessage("Internal Server Error1");
 		}
 	});
 }

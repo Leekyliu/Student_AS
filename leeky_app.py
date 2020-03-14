@@ -17,7 +17,7 @@ class Mainpage:
         filename = "Unit.txt"
         res = ''
         if os.path.exists(filename) == False:
-            with open(filename,"a") as f:
+            with open(filename,"a+") as f:
                 f.write("Unit Code needed '{}'\n".format(coursecode))
                 res = "Sorry the course haven't been recorded yet. We will update soon"
                 f.close()
@@ -25,18 +25,18 @@ class Mainpage:
             
         else:
             flag = 0
-            f = open(filename,"a")
-            lines = f.readlines()
-            for lines in lines:
-                if coursecode in lines:
-                    res = "We have already received similar query and will update soon"
+            with open(filename,"a+") as f:
+                lines = f.readlines()
+                for line in lines:
+                    if coursecode in line:
+                        res = "We have already received similar query and will update soon"
+                        f.close()
+                        flag = 1
+                        break
+                if flag == 0:  
+                    f.write("Unit Code needed '{}'\n".format(coursecode))
+                    res = "Sorry the course haven't been recorded yet. We will update soon"
                     f.close()
-                    flag = 1
-                    break
-            if flag == 0:  
-                f.write("Unit Code needed '{}'\n".format(coursecode))
-                res = "Sorry the course haven't been recorded yet. We will update soon"
-                f.close()
         return res
             
 
@@ -46,25 +46,25 @@ class Mainpage:
         filename = "Intent.txt"
         res = ''
         if os.path.exists(filename) == False:
-            with open(filename,"a") as f:
+            with open(filename,"a+") as f:
                 f.write("Intent needed '{}'".format(intent))
                 res = "We never encountered this situation. We will update soon"
                 f.close()
 
         else:
             flag = 0
-            f = open(filename,"a")
-            lines = f.readlines()
-            for lines in lines:
-                if intent.text.text in lines:
-                    res = "We have already received similar query and will update soon"
+            with open(filename,"a+") as f:
+                lines = f.readlines()
+                for line in lines:
+                    if intent.text.text in line:
+                        res = "We have already received similar query and will update soon"
+                        f.close()
+                        flag = 1
+                        break
+                if flag == 0:  
+                    f.write("Intent needed '{}'".format(intent))
+                    res = "We never encountered this situation. We will update soon"
                     f.close()
-                    flag = 1
-                    break
-            if flag == 0:  
-                f.write("Intent needed '{}'".format(intent))
-                res = "We never encountered this situation. We will update soon"
-                f.close()
         return res
 
         
@@ -257,6 +257,10 @@ class Mainpage:
             res = self.unitWeb(offer)
             return res
 
+        if intent == "Book_init":
+            res = self.unitWeb(offer)
+            return res
+
         #small talk training happen here
         if intent =='':
             self.info_flag = 0
@@ -264,10 +268,10 @@ class Mainpage:
             return offer.query_result.fulfillment_text
 
         if intent == "Default Fallback Intent":
-            self.invaildIntent(query)
+            res = self.invaildIntent(query)
             self.info_flag = 0
             self.course = None
-            return offer.query_result.fulfillment_text
+            return res
         
 
         if intent == "about agent":
@@ -350,4 +354,5 @@ def index():
 
 if __name__ == "__main__":
     # mainloop()
-    app.run(debug=True, host='localhost', port=15888)
+    # app.run(debug=True, host='localhost', port=15888)
+     app.run(debug=True, host='ec2-3-104-75-184.ap-southeast-2.compute.amazonaws.com', port=16888)
