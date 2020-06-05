@@ -259,9 +259,27 @@ class Mainpage:
             return offer.query_result.fulfillment_text
         
         if intent == "Book_place":
-            room = offer.query_result.output_contexts[0].parameters["Room_type"]
-            time = offer.query_result.output_contexts[0].parameters["date-time"][0]["date_time"]
-            place = offer.query_result.output_contexts[0].parameters["usyd_location"]
+            fr = 0
+            ft = 0
+            fp = 0
+            room = ''
+            time = ''
+            place=''
+            for i in offer.query_result.output_contexts:
+                if "Room_type" in i.parameters and fr == 0:
+                    room = i.parameters["Room_type"]
+                    fr = 1
+                if "date-time" in i.parameters and ft == 0:
+                    time = i.parameters["date-time"][0]["date_time"]
+                    ft = 1
+                if "usyd_location" in i.parameters and fp == 0:
+                    place = i.parameters["usyd_location"]
+                    fp = 1
+                if ft*fr*fp == 1:
+                    break
+            # room = offer.query_result.output_contexts[0].parameters["Room_type"]
+            # time = offer.query_result.output_contexts[0].parameters["date-time"][0]["date_time"]
+            # place = offer.query_result.output_contexts[0].parameters["usyd_location"]
             cur = self.mydb.cursor()
             cur.execute("SELECT room FROM Booking WHERE time = '{}' and place ='{}'".format(time,place))
             row = cur.fetchone ()
@@ -276,7 +294,7 @@ class Mainpage:
                 try:
                     cur.execute(sql, val)
                     self.mydb.commit()
-                    res = offer.query_result.fulfillment_text +'. '+ room + " at " + time + " in " + place+'.'
+                    res = offer.query_result.fulfillment_text +' '+ room + " at " + time + " in " + place+'.'
         
                 except Exception as err:
                     res = "Sorry, the room is occupied at that time."
